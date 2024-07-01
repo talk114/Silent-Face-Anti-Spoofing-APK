@@ -41,7 +41,7 @@ class CoverView: View {
         setLayerType(View.LAYER_TYPE_SOFTWARE, null)
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         val layerId = canvas?.saveLayer(0F, 0F, width.toFloat(), height.toFloat(), null, Canvas.ALL_SAVE_FLAG)
 
         canvas?.drawRect(0F, 0F, width.toFloat(), height.toFloat(), paint)

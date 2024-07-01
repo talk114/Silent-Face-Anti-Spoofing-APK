@@ -90,7 +90,7 @@ class RectView : View {
         confidence = v
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
         paint.style = Paint.Style.STROKE

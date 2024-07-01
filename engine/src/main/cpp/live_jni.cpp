@@ -3,9 +3,10 @@
 //
 
 #include <android/asset_manager_jni.h>
+#include "opencv2/core/mat.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 #include "jni_long_field.h"
-#include "live/live.h"
-#include "android_log.h"
+#include "live.h"
 #include "img_process.h"
 
 JniLongField live_field("nativeHandler");
@@ -17,26 +18,6 @@ Live* get_live(JNIEnv* env, jobject instance) {
 
 void set_live(JNIEnv* env, jobject instance, Live* live) {
     live_field.set(env, instance, reinterpret_cast<intptr_t>(live));
-}
-
-
-extern "C" {
-
-JNIEXPORT jlong JNICALL
-LIVE_METHOD(allocate)(JNIEnv *env, jobject instance);
-
-JNIEXPORT void JNICALL
-LIVE_METHOD(deallocate)(JNIEnv *env, jobject instance);
-
-
-JNIEXPORT jint JNICALL
-LIVE_METHOD(nativeLoadModel)(JNIEnv *env, jobject instance, jobject asset_manager,
-                             jobject configs);
-
-JNIEXPORT jfloat JNICALL
-LIVE_METHOD(nativeDetectYuv)(JNIEnv *env, jobject instance, jbyteArray yuv, jint preview_width,
-                             jint preview_height, jint orientation, jint left, jint top, jint right, jint bottom);
-
 }
 
 
@@ -83,34 +64,34 @@ void ConvertAndroidConfig2NativeConfig(JNIEnv *env,jobject model_configs, std::v
 }
 
 
+extern "C"
 JNIEXPORT jlong JNICALL
-LIVE_METHOD(allocate)(JNIEnv *env, jobject instance) {
+Java_com_mv_engine_Live_allocate(JNIEnv *env, jobject thiz) {
     auto * const live = new Live();
-    set_live(env, instance, live);
+    set_live(env, thiz, live);
     return reinterpret_cast<intptr_t> (live);
 }
-
-
+extern "C"
 JNIEXPORT void JNICALL
-LIVE_METHOD(deallocate)(JNIEnv *env, jobject instance) {
-    delete get_live(env, instance);
-    set_live(env, instance, nullptr);
+Java_com_mv_engine_Live_deallocate(JNIEnv *env, jobject thiz) {
+    delete get_live(env, thiz);
+    set_live(env, thiz, nullptr);
 }
-
+extern "C"
 JNIEXPORT jint JNICALL
-LIVE_METHOD(nativeLoadModel)(JNIEnv *env, jobject instance, jobject asset_manager,
-        jobject configs) {
+Java_com_mv_engine_Live_nativeLoadModel(JNIEnv *env, jobject thiz, jobject asset_manager,
+                                        jobject configs) {
     std::vector<ModelConfig> model_configs;
     ConvertAndroidConfig2NativeConfig(env, configs, model_configs);
 
     AAssetManager* mgr = AAssetManager_fromJava(env, asset_manager);
-    return get_live(env, instance)->LoadModel(mgr, model_configs);
+    return get_live(env, thiz)->LoadModel(mgr, model_configs);
 }
-
-
+extern "C"
 JNIEXPORT jfloat JNICALL
-LIVE_METHOD(nativeDetectYuv)(JNIEnv *env, jobject instance, jbyteArray yuv, jint preview_width,
-        jint preview_height, jint orientation, jint left, jint top, jint right, jint bottom) {
+Java_com_mv_engine_Live_nativeDetectYuv(JNIEnv *env, jobject thiz, jbyteArray yuv,
+                                        jint preview_width, jint preview_height, jint orientation,
+                                        jint left, jint top, jint right, jint bottom) {
     jbyte *yuv_ = env->GetByteArrayElements(yuv, nullptr);
 
     cv::Mat bgr;
@@ -122,8 +103,8 @@ LIVE_METHOD(nativeDetectYuv)(JNIEnv *env, jobject instance, jbyteArray yuv, jint
     faceBox.x2 = right;
     faceBox.y2 = bottom;
 
-    float confidence = get_live(env, instance)->Detect(bgr, faceBox);
+    float confidence =  get_live(env, thiz)->Detect(bgr, faceBox);
     env->ReleaseByteArrayElements(yuv, yuv_, 0);
     return confidence;
-}
 
+}

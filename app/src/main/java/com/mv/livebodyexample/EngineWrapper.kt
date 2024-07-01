@@ -1,6 +1,7 @@
 package com.mv.livebodyexample
 
 import android.content.res.AssetManager
+import android.util.Log
 import com.mv.engine.FaceBox
 import com.mv.engine.FaceDetector
 import com.mv.engine.Live
@@ -13,8 +14,11 @@ class EngineWrapper(private var assetManager: AssetManager) {
 
     fun init(): Boolean {
         var ret = faceDetector.loadModel(assetManager)
+        Log.wtf("LOADMODEL", "rs: $ret")
         if (ret == 0) {
             ret = live.loadModel(assetManager)
+            Log.wtf("LOADMODEL2", "rs: $ret")
+
             return ret == 0
         }
 
@@ -28,6 +32,7 @@ class EngineWrapper(private var assetManager: AssetManager) {
 
     fun detect(yuv: ByteArray, width: Int, height: Int, orientation: Int): DetectionResult {
         val boxes = detectFace(yuv, width, height, orientation)
+        Log.wtf("DetectFace", "box: $boxes")
         if (boxes.isNotEmpty()) {
             val begin = System.currentTimeMillis()
             val box = boxes[0].apply {

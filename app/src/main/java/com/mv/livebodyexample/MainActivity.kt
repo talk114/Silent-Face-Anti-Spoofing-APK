@@ -98,56 +98,6 @@ class MainActivity : AppCompatActivity(), SetThresholdDialogFragment.ThresholdDi
         binding.surface.holder.let {
             it.setFormat(ImageFormat.NV21)
             it.addCallback(object : SurfaceHolder.Callback, Camera.PreviewCallback {
-                override fun surfaceChanged(
-                    holder: SurfaceHolder?,
-                    format: Int,
-                    width: Int,
-                    height: Int
-                ) {
-                    if (holder?.surface == null) return
-
-                    if (camera == null) return
-
-                    try {
-                        camera?.stopPreview()
-                    } catch (e: java.lang.Exception) {
-                        e.printStackTrace()
-                    }
-
-                    val parameters = camera?.parameters
-                    parameters?.setPreviewSize(previewWidth, previewHeight)
-
-                    factorX = screenWidth / previewHeight.toFloat()
-                    factorY = screenHeight / previewWidth.toFloat()
-
-                    camera?.parameters = parameters
-
-                    camera?.startPreview()
-                    camera?.setPreviewCallback(this)
-
-                    setCameraDisplayOrientation()
-                }
-
-                override fun surfaceDestroyed(holder: SurfaceHolder?) {
-                    camera?.setPreviewCallback(null)
-                    camera?.release()
-                    camera = null
-                }
-
-                override fun surfaceCreated(holder: SurfaceHolder?) {
-                    try {
-                        camera = Camera.open(cameraId)
-                    } catch (e: Exception) {
-                        cameraId = Camera.CameraInfo.CAMERA_FACING_BACK
-                        camera = Camera.open(cameraId)
-                    }
-
-                    try {
-                        camera!!.setPreviewDisplay(binding.surface.holder)
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
-                }
 
                 override fun onPreviewFrame(data: ByteArray?, camera: Camera?) {
                     if (enginePrepared && data != null) {
@@ -181,6 +131,57 @@ class MainActivity : AppCompatActivity(), SetThresholdDialogFragment.ThresholdDi
                             }
                         }
                     }
+                }
+
+                override fun surfaceCreated(holder: SurfaceHolder) {
+                    try {
+                        camera = Camera.open(cameraId)
+                    } catch (e: Exception) {
+                        cameraId = Camera.CameraInfo.CAMERA_FACING_BACK
+                        camera = Camera.open(cameraId)
+                    }
+
+                    try {
+                        camera!!.setPreviewDisplay(binding.surface.holder)
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+                }
+
+                override fun surfaceChanged(
+                    holder: SurfaceHolder,
+                    format: Int,
+                    width: Int,
+                    height: Int
+                ) {
+                    if (holder?.surface == null) return
+
+                    if (camera == null) return
+
+                    try {
+                        camera?.stopPreview()
+                    } catch (e: java.lang.Exception) {
+                        e.printStackTrace()
+                    }
+
+                    val parameters = camera?.parameters
+                    parameters?.setPreviewSize(previewWidth, previewHeight)
+
+                    factorX = screenWidth / previewHeight.toFloat()
+                    factorY = screenHeight / previewWidth.toFloat()
+
+                    camera?.parameters = parameters
+
+                    camera?.startPreview()
+                    camera?.setPreviewCallback(this)
+
+                    setCameraDisplayOrientation()
+                }
+
+                override fun surfaceDestroyed(holder: SurfaceHolder) {
+                    camera?.setPreviewCallback(null)
+                    camera?.release()
+                    camera = null
                 }
             })
         }
